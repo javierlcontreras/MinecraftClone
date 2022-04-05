@@ -23,28 +23,14 @@ public class MapGenerator : MonoBehaviour
     }
 
     public void GenerateMap() {
-        float capFactor = (persistance - 1)/(Mathf.Pow(persistance, octaves) - 1);
-        float[,] noiseMap = Noise.GenerateNoiseMap(mapWidth, mapHeight, noiseScale, octaves, persistance, lacunarity, capFactor, offsetX, offsetY);
-        int[,] heightMap = noise2height(noiseMap, factor);
+        Chunk chunk = ChunkLoader.newChunk(0, 0);
+
+        Debug.Log(chunk.blocks[12,8,0].type);
 
         MapDisplay display = FindObjectOfType<MapDisplay>();
-        
-        display.DrawNoiseMapAsCubeMesh(heightMap);
-        display.DrawTexture();
+
+        display.AddTextureAtlas();
+        display.DrawMeshFromBlocks(chunk);
     }
 
-    private int[,] noise2height(float[,] noiseMap, float factor)
-    {
-        int width = noiseMap.GetLength(0);
-        int height = noiseMap.GetLength(1);
-        int[,] heightMap = new int[width, height];
-        for (int i = 0; i < width; i++)
-        {
-            for (int j = 0; j < height; j++)
-            {
-                heightMap[i, j] = (int)(noiseMap[i, j] * factor);
-            }
-        }
-        return heightMap;
-    }
 }
