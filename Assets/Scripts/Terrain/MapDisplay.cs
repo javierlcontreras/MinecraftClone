@@ -12,6 +12,14 @@ public class MapDisplay : MonoBehaviour
 
     Dictionary<string, Vector2[]> textureCoord;
 
+    public void Init()
+    {
+        meshRenderer = gameObject.GetComponent<MeshRenderer>();
+        meshCollider = gameObject.GetComponent<MeshCollider>();
+        meshFilter = gameObject.GetComponent<MeshFilter>();
+        texturePath = "Assets/Materials/TextureAtlas.png";
+    }
+
     public void AddTextureAtlas()
     {
         Texture2D texture = null;
@@ -150,94 +158,16 @@ public class MapDisplay : MonoBehaviour
             }
         }
 
-        meshFilter.sharedMesh.uv = null;
-        meshFilter.sharedMesh.triangles = null;
+        meshFilter.mesh.uv = null;
+        meshFilter.mesh.triangles = null;
 
-        meshFilter.sharedMesh.vertices = vertices.ToArray();
-        meshFilter.sharedMesh.uv = uv.ToArray();
-        meshFilter.sharedMesh.triangles = triangles.ToArray();
-        meshFilter.sharedMesh.RecalculateNormals();
+        meshFilter.mesh.vertices = vertices.ToArray();
+        meshFilter.mesh.uv = uv.ToArray();
+        meshFilter.mesh.triangles = triangles.ToArray();
+        meshFilter.mesh.RecalculateNormals();
 
-        meshCollider.sharedMesh = meshFilter.sharedMesh;
+        meshCollider.sharedMesh = meshFilter.mesh;
     }
-    public void DrawMeshFromHeighMap(int[,] heightMap) {
-        List<int> triangles = new List<int>();
-        List<Vector3> vertices = new List<Vector3>();
-        List<Vector2> uv = new List<Vector2>();
-        int nver = 0;
-
-        int width = heightMap.GetLength(0);
-        int height = heightMap.GetLength(1);
-        int[] neighboursX = new int[2] { 1, 0};
-        int[] neighboursY = new int[2] { 0, 1};
-
-        for (int i = 0; i < width; i++)
-        {
-            for (int j = 0; j < height; j++) 
-            {
-                int h = heightMap[i, j];
-
-                Vector3[] coord = new Vector3[4] { 
-                    new Vector3(i, h, j),
-                    new Vector3(i + 1, h, j),
-                    new Vector3(i + 1, h, j + 1),
-                    new Vector3(i, h, j+1) 
-                };
-                addQuad(coord, textureCoord["grasstop"], vertices, uv, triangles, ref nver, false, false);
-
-
-                for (int k = 0; k < 2; k++)
-                {
-                    int xn = i + neighboursX[k];
-                    int yn = j + neighboursY[k];
-
-                    if (xn < width && yn < height) {
-                        int heightDiff = heightMap[xn, yn] - h;
-                        if (heightDiff > 0)
-                        {
-                            for (int hit = 0; hit < heightDiff; hit++)
-                            {
-
-                                coord = new Vector3[4] {
-                                    new Vector3(xn, h+hit, yn),
-                                    new Vector3(i+1, h+hit, j + 1),
-                                    new Vector3(i+1, h+hit+1, j + 1),
-                                    new Vector3(xn, h+hit+1, yn)
-                                };
-
-                                addQuad(coord, textureCoord["grassside"], vertices, uv, triangles, ref nver, k == 0, true);
-                            }
-                        }
-                        else if (heightDiff < 0)
-                        {
-                            for (int hit = 0; hit > heightDiff; hit--)
-                            {
-                                coord = new Vector3[4] {
-                                    new Vector3(xn, h+hit, yn),
-                                    new Vector3(i+1, h+hit, j + 1),
-                                    new Vector3(i+1, h+hit-1, j + 1),
-                                    new Vector3(xn, h+hit-1, yn)
-                                };
-                                addQuad(coord, textureCoord["grassside"], vertices, uv, triangles, ref nver, k == 0, false);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        meshFilter.sharedMesh.uv = null;
-        meshFilter.sharedMesh.triangles = null;
-
-        meshFilter.sharedMesh.vertices = vertices.ToArray();
-        meshFilter.sharedMesh.uv = uv.ToArray();
-        meshFilter.sharedMesh.triangles = triangles.ToArray();
-        meshFilter.sharedMesh.RecalculateNormals();
-
-        meshCollider.sharedMesh = meshFilter.sharedMesh;
-    }
-
-
 
     private void Swap(ref Vector3 A, ref Vector3 B)
     {

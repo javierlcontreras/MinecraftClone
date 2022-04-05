@@ -39,7 +39,7 @@ public class PlayerMover : MonoBehaviour
         //Debug.Log(groundedPlayer + " " + cappedNorth + " " + cappedSouth + " " + cappedEast + " " + cappedWest);
         //Debug.Log(jumpHeight);
 
-        if (groundedPlayer && Input.GetButtonDown("Jump"))
+        if (/*groundedPlayer && */Input.GetButtonDown("Jump"))
         {
             playerVelocity.y += Mathf.Sqrt(jumpHeight * -3.0f * gravityValue);
         }

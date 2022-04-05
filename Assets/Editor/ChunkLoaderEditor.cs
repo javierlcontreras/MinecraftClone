@@ -3,20 +3,18 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEditor;
 
-[CustomEditor (typeof (MapGenerator))]
+[CustomEditor (typeof (ChunkLoader))]
 public class MapGeneratorEditor : Editor
 {
     public override void OnInspectorGUI()
     {
-        MapGenerator mapGen = (MapGenerator) target;
+        ChunkLoader mapGen = (ChunkLoader) target;
 
-        if (DrawDefaultInspector()) {
-            if (mapGen.autoUpdate) mapGen.GenerateMap();
-        }
+        DrawDefaultInspector();
 
         if (GUILayout.Button("Generate"))
         {
-            mapGen.GenerateMap();
+            mapGen.ZeroChunk();
         }
 
     }
