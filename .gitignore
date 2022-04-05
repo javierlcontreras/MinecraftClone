@@ -361,3 +361,8 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/Library
+/Temp
+/MinecraftClone.sln
+/Assembly-CSharp-Editor.csproj
+/Assembly-CSharp.csproj
