@@ -10,36 +10,6 @@ public class MapDisplay : MonoBehaviour
     public MeshCollider meshCollider;
     public string texturePath;
 
-    public void DrawNoiseMap(int[,] heightMap, int factor)
-    {
-        int width = heightMap.GetLength(0);
-        int height = heightMap.GetLength(1);
-        Texture2D texture = new Texture2D(width, height)
-        {
-            filterMode = FilterMode.Point
-        };
-
-        Color[] textureColors = new Color[width * height];
-        for (int i = 0; i < width; i++)
-        {
-            for (int j = 0; j < height; j++)
-            {
-                float c = 1.0f * heightMap[i, j]/factor;
-                textureColors[i + j * width] = new Color(c, c, c);
-            }
-        }
-
-        texture.SetPixels(textureColors);
-        texture.Apply();
-
-        meshRenderer.sharedMaterial.mainTexture = texture;
-    }
-
-
-    private int coord2value(int x, int y, int w, int h) {
-        return x * h + y;
-    }
-
     public void DrawTexture()
     {
         Texture2D texture = null;
@@ -50,69 +20,11 @@ public class MapDisplay : MonoBehaviour
             fileData = File.ReadAllBytes(texturePath);
             texture = new Texture2D(2, 2);
             texture.filterMode = FilterMode.Point;
-            texture.LoadImage(fileData); //..this will auto-resize the texture dimensions.
+            texture.LoadImage(fileData);
             texture.Apply();
-            Debug.Log("EO");
-
         }
-        Debug.Log("OMG " + texturePath);
 
         meshRenderer.sharedMaterial.mainTexture = texture;
-    }
-
-    public void DrawNoiseMapAsMesh(float[,] noiseMap)
-    {
-        int width = noiseMap.GetLength(0);
-        int height = noiseMap.GetLength(1);
-        
-        int[] triangles = new int[(width-1)*(height-1)*6]; // meshFilter.mesh.triangles;
-        Vector3[] vertices = new Vector3[width * height];
-        Vector2[] uv = new Vector2[width * height];
-
-        for (int i = 0; i+1 < width; i++)
-        {
-            for (int j = 0; j+1 < height; j++)
-            {
-                int ind = 6 * coord2value(i,j,width-1, height-1);
-                triangles[ind]     = coord2value(i, j, width, height);
-                triangles[ind + 1] = coord2value(i + 1, j + 1, width, height);
-                triangles[ind + 2] = coord2value(i+1, j, width, height);
-
-                triangles[ind + 3] = coord2value(i, j, width, height);
-                triangles[ind + 4] = coord2value(i, j + 1, width, height);
-                triangles[ind + 5] = coord2value(i+1, j+1, width, height);
-            }
-        }
-
-
-        for (int i=0; i<width; i++)
-        {
-            for (int j = 0; j < height; j++)
-            {
-                int ind = coord2value(i, j, width, height);
-                Debug.Log(noiseMap[i, j]);
-                vertices[ind] = new Vector3(i, 255*noiseMap[i,j], j);
-                uv[ind] = new Vector2(1f*i/width, 1f*j/height);
-            }
-        }
-
-        meshFilter.sharedMesh.vertices = vertices;
-        meshFilter.sharedMesh.uv = uv;
-        meshFilter.sharedMesh.triangles = triangles;
-    }
-
-    private void Swap(ref Vector3 A, ref Vector3 B)
-    {
-        Vector3 C = B;
-        B = A;
-        A = C;
-    }
-
-    private void Swap(ref Vector2 A, ref Vector2 B)
-    {
-        Vector2 C = B;
-        B = A;
-        A = C;
     }
 
     private void addQuad(Vector3[] coord, Vector2[] uvs, List<Vector3> vertices, List<Vector2> uv, List<int> triangles, ref int nver, bool reorder, bool growing)
@@ -233,13 +145,17 @@ public class MapDisplay : MonoBehaviour
         meshCollider.sharedMesh = meshFilter.sharedMesh;
     }
 
-
-    private Vector2[] divideBySize(Vector2[] uvs, int width, int height) {
-        int si = uvs.Length;
-        for (int i = 0; i < si; i++) {
-            uvs[i].Scale(new Vector2(1f/width, 1f / height));
-        }
-        return uvs;
+    private void Swap(ref Vector3 A, ref Vector3 B)
+    {
+        Vector3 C = B;
+        B = A;
+        A = C;
     }
 
+    private void Swap(ref Vector2 A, ref Vector2 B)
+    {
+        Vector2 C = B;
+        B = A;
+        A = C;
+    }
 }
