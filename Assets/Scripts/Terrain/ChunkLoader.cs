@@ -16,112 +16,167 @@ public class ChunkLoader : MonoBehaviour
     public int factor = 10;
 
     public Transform playerPosition;
+    public int loadingRadius = 3;
 
     Dictionary<Vector2Int, Chunk> chunks;
-    int oldx, oldy;
-
+    private int oldx, oldy;
+    private bool start;
+    private GameObject chunkParent;
     void Start()
     {
+        start = true;
+        chunkParent = GameObject.FindGameObjectWithTag("ChunkParent");
         chunks = new Dictionary<Vector2Int, Chunk>();
-
-        int x = ((int)playerPosition.transform.position.x) / chunkWidth;
-        int y = ((int)playerPosition.transform.position.z) / chunkDepth;
-        Vector2Int chunkPosition = new Vector2Int(x, y);
-
-        Chunk chunk = null;
-        if (chunks.ContainsKey(chunkPosition))
-        {
-            chunk = chunks[chunkPosition];
-        }
-        else
-        {
-            chunk = newChunk(x, y);
-        }
-
-        GameObject plane = GameObject.CreatePrimitive(PrimitiveType.Plane);
-        plane.name = "Chunk " + x + " " + y;
-
-        MapDisplay mapDisplay = plane.AddComponent(typeof(MapDisplay)) as MapDisplay;
-
-        mapDisplay.Init();
-        mapDisplay.AddTextureAtlas();
-        mapDisplay.DrawMeshFromBlocks(chunk);
-
-        plane.transform.Translate(new Vector3(16f * x, 0, 16f * y));
-
-        oldx = x;
-        oldy = y;
     }
 
     private void Update()
     {
-        int x = ((int)playerPosition.transform.position.x) / chunkWidth;
-        int y = ((int)playerPosition.transform.position.z) / chunkDepth;
-        if (oldx == x && oldy == y) return;
-        Debug.Log(x + " " + y);
-
+        int x = Mathf.FloorToInt(playerPosition.transform.position.x / chunkWidth);
+        int y = Mathf.FloorToInt(playerPosition.transform.position.z / chunkDepth);
+        if (!start && oldx == x && oldy == y) return;
+        
         Vector2Int chunkPosition = new Vector2Int(x, y);
+        Vector2Int oldChunkPosition = new Vector2Int(oldx, oldy);
 
-        Chunk chunk = null;
-        if (chunks.ContainsKey(chunkPosition))
+        for (int i=x-loadingRadius; i<=x+loadingRadius; i++)
         {
-            chunk = chunks[chunkPosition];
+            for (int j = y-loadingRadius; j <= y+loadingRadius; j++)
+            {
+                Vector2Int thisChunk = new Vector2Int(i, j);
+                bool loadedBefore = !start && (Vector2.Distance(thisChunk, oldChunkPosition) < loadingRadius);
+                bool loadedNow = (Vector2.Distance(thisChunk, chunkPosition) < loadingRadius);
+
+                //Debug.Log(x + " " + y + " " + i + " " + j + " " + loadedBefore + " " + loadedNow);
+
+                if (loadedBefore && !loadedNow)
+                {
+                    if (chunks.ContainsKey(thisChunk))
+                    {
+                        chunks[thisChunk].plane.SetActive(false);
+                    }
+                }
+                if (!loadedBefore && loadedNow)
+                {
+                    if (!chunks.ContainsKey(thisChunk))
+                    {
+                        Chunk chunk = newChunk(i, j);
+
+                        GameObject plane = GameObject.CreatePrimitive(PrimitiveType.Plane);
+                        plane.name = "Chunk " + i + " " + j;
+
+                        MapDisplay mapDisplay = plane.AddComponent(typeof(MapDisplay)) as MapDisplay;
+
+                        mapDisplay.Init();
+                        mapDisplay.AddTextureAtlas();
+                        mapDisplay.DrawMeshFromBlocks(chunk);
+
+                        plane.transform.SetParent(chunkParent.transform);
+                        plane.transform.Translate(new Vector3(chunkWidth * i, 0, chunkDepth * j));
+                        chunk.plane = plane;
+                        
+                        chunks[thisChunk] = chunk;
+                    }
+
+                    chunks[thisChunk].plane.SetActive(true);
+                }
+            }
         }
-        else
-        {
-            chunk = newChunk(x, y);
-        }
 
-        GameObject plane = GameObject.CreatePrimitive(PrimitiveType.Plane);
-        plane.name = "Chunk " + x + " " + y;
-
-        MapDisplay mapDisplay = plane.AddComponent(typeof(MapDisplay)) as MapDisplay;
-
-        mapDisplay.Init();
-        mapDisplay.AddTextureAtlas();
-        mapDisplay.DrawMeshFromBlocks(chunk);
-
-        plane.transform.Translate(new Vector3(16f * x, 0, 16f * y));
-
+        start = false;
         oldx = x;
         oldy = y;
     }
-
+    List<GameObject> testingPlanes;
     public void ZeroChunk()
     {
-        Chunk chunk = newChunk(0, 0);
+        testingPlanes = new List<GameObject>();
+        for (int i=-loadingRadius; i<=loadingRadius; i++)
+        {
+            for (int j = -loadingRadius; j <= loadingRadius; j++)
+            {
+                Chunk chunk = newChunk(0, 0);
 
-        GameObject plane = GameObject.CreatePrimitive(PrimitiveType.Plane);
-        plane.AddComponent(typeof(MapDisplay));
+                GameObject plane = GameObject.CreatePrimitive(PrimitiveType.Plane);
+                testingPlanes.Add(plane);
+                plane.AddComponent(typeof(MapDisplay));
+                
+                MapDisplay mapDisplay = plane.GetComponent<MapDisplay>();
 
-        MapDisplay mapDisplay = plane.GetComponent<MapDisplay>();
+                mapDisplay.Init();
+                mapDisplay.AddTextureAtlas();
+                mapDisplay.DrawMeshFromBlocks(chunk);
+            }
+        }
+    }
 
-        mapDisplay.Init();
-        mapDisplay.AddTextureAtlas();
-        mapDisplay.DrawMeshFromBlocks(chunk);
+    public void Reload()
+    {
+        start = true;
+        Debug.Log("JAVI");
+        foreach (Chunk chunk in chunks.Values)
+        {
+            GameObject.DestroyImmediate(chunk.plane);
+        }
+        chunks.Clear();
+    }
+
+    public void CleanUp()
+    {
+        testingPlanes.ForEach((GameObject x) => GameObject.DestroyImmediate(x));
     }
 
 
-    private Chunk newChunk(float offsetX, float offsetY)
+    private Chunk newChunk(float chunkX, float chunkY)
     {
         int[,] heightMap = Noise.noise2height(
-            Noise.GenerateNoiseMap(chunkWidth, chunkDepth, noiseScale, octaves, persistance, lacunarity, offsetX, offsetY),
+            Noise.GenerateNoiseMap(chunkWidth, chunkDepth, noiseScale, octaves, persistance, lacunarity, chunkWidth * chunkX, chunkDepth * chunkY),
             factor
         );
 
-        Block[,,] chunkBlocks = new Block[chunkWidth, chunkDepth, chunkHeight];
+        Block[,,] chunkBlocks = new Block[chunkWidth, chunkHeight, chunkDepth];
         for (int i=0; i<chunkWidth; i++)
         {
             for (int j = 0; j < chunkDepth; j++)
             {
                 for (int k = 0; k < chunkHeight; k++)
                 {
-                    if (k < heightMap[i, j]) chunkBlocks[i, j, k] = new Block(BlockType.Stone);
-                    else chunkBlocks[i, j, k] = new Block(BlockType.Air);
+                    if (k == heightMap[i, j]) chunkBlocks[i, k, j] = new Block(BlockType.Grass);
+                    else if (k < heightMap[i, j]) chunkBlocks[i, k, j] = new Block(BlockType.Stone);
+                    else chunkBlocks[i, k, j] = new Block(BlockType.Air);
                 }
             }
         }
 
         return new Chunk(chunkBlocks);
+    }
+
+    public void RemoveBlock(Vector3Int block)
+    {
+        int chunkX = Mathf.FloorToInt(1f * block.x / chunkWidth);
+        int chunkZ = Mathf.FloorToInt(1f * block.z / chunkDepth);
+        Vector2Int chunkPosition = new Vector2Int(chunkX, chunkZ);
+        Chunk chunk = chunks[chunkPosition];
+        block.x = ((block.x % 16) + 16) % 16;
+        block.z = ((block.z % 16) + 16) % 16;
+
+        //Debug.Log(block);
+        //Debug.Log(chunk.blocks[block.x, block.y, block.z].type);
+        chunk.blocks[block.x, block.y, block.z].type = BlockType.Air;
+        chunk.Reload();
+    }
+
+    public void AddBlock(Vector3Int block)
+    {
+        int chunkX = Mathf.FloorToInt(1f * block.x / chunkWidth);
+        int chunkZ = Mathf.FloorToInt(1f * block.z / chunkDepth);
+        Vector2Int chunkPosition = new Vector2Int(chunkX, chunkZ);
+        Chunk chunk = chunks[chunkPosition];
+        block.x = ((block.x % 16) + 16) % 16;
+        block.z = ((block.z % 16) + 16) % 16;
+
+        //Debug.Log(block);
+        //Debug.Log(chunk.blocks[block.x, block.y, block.z].type);
+        chunk.blocks[block.x, block.y, block.z].type = BlockType.Grass;
+        chunk.Reload();
     }
 }

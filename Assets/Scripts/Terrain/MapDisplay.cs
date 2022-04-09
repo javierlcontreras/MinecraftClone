@@ -88,14 +88,15 @@ public class MapDisplay : MonoBehaviour
 
     public void DrawMeshFromBlocks(Chunk chunk)
     {
+        //Debug.Log("EONOW");
         List<int> triangles = new List<int>();
         List<Vector3> vertices = new List<Vector3>();
         List<Vector2> uv = new List<Vector2>();
         int nver = 0;
 
         int chunkWidth = chunk.blocks.GetLength(0);
-        int chunkDepth = chunk.blocks.GetLength(1);
-        int chunkkHeight = chunk.blocks.GetLength(2);
+        int chunkkHeight = chunk.blocks.GetLength(1);
+        int chunkDepth = chunk.blocks.GetLength(2);
 
         int[] neighboursX = new int[] { 1,-1,0,0,0,0};
         int[] neighboursZ = new int[] { 0,0,1,-1,0,0};
@@ -107,8 +108,9 @@ public class MapDisplay : MonoBehaviour
             {
                 for (int k = 0; k < chunkkHeight; k++)
                 {
-                    if (chunk.blocks[i, j, k].type == BlockType.Air) continue; 
-                    
+                    BlockType blockType = chunk.blocks[i, k, j].type;
+                    if (blockType == BlockType.Air) continue;
+
                     for (int neig = 0; neig < 6; neig++)
                     {
                         int x = i + neighboursX[neig];
@@ -116,10 +118,15 @@ public class MapDisplay : MonoBehaviour
                         int y = k + neighboursY[neig];
                         BlockType neighbourType = BlockType.Air;
 
-                        if (0 <= x && x < chunkWidth && 
+                        if (0 <= x && x < chunkWidth &&
                             0 <= z && z < chunkDepth &&
-                            0 <= y && y < chunkkHeight) neighbourType = chunk.blocks[x, z, y].type;
-                        
+                            0 <= y && y < chunkkHeight) neighbourType = chunk.blocks[x, y, z].type;
+
+                        Vector2[] textureTop = textureCoord["grasstop"];
+                        Vector2[] textureBot = textureCoord["dirt"];
+                        Vector2[] textureSide = textureCoord["grassside"];
+                        if (blockType == BlockType.Stone) textureSide = textureCoord["dirt"];
+
                         if (neighbourType == BlockType.Air)
                         {
                             if (k != y) { 
@@ -129,8 +136,8 @@ public class MapDisplay : MonoBehaviour
                                     new Vector3(i+0.5f, (k+y)/2f, j+0.5f),
                                     new Vector3(i-0.5f, (k+y)/2f, j+0.5f)
                                 };
-                                if (k < y) addQuad(coord, textureCoord["grasstop"], vertices, uv, triangles, ref nver, k > y, k > y);
-                                else addQuad(coord, textureCoord["dirt"], vertices, uv, triangles, ref nver, k > y, k > y);
+                                if (k < y) addQuad(coord, textureTop, vertices, uv, triangles, ref nver, k > y, k > y);
+                                else addQuad(coord, textureBot, vertices, uv, triangles, ref nver, k > y, k > y);
                             }
                             if (i != x)
                             {
@@ -140,7 +147,7 @@ public class MapDisplay : MonoBehaviour
                                     new Vector3((i+x)/2f, k+0.5f, j+0.5f),
                                     new Vector3((i+x)/2f, k+0.5f, j-0.5f)
                                 };
-                                addQuad(coord, textureCoord["grassside"], vertices, uv, triangles, ref nver, i > x, true);
+                                addQuad(coord, textureSide, vertices, uv, triangles, ref nver, i > x, true);
                             }
                             if (j != z)
                             {
@@ -150,7 +157,7 @@ public class MapDisplay : MonoBehaviour
                                     new Vector3(i-0.5f, k+0.5f, (j+z)/2f),
                                     new Vector3(i+0.5f, k+0.5f, (j+z)/2f)
                                 };
-                                addQuad(coord, textureCoord["grassside"], vertices, uv, triangles, ref nver, j > z, true);
+                                addQuad(coord, textureSide, vertices, uv, triangles, ref nver, j > z, true);
                             }
                         }
                     }

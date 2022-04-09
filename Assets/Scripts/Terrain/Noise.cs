@@ -37,10 +37,10 @@ public static class Noise
                 for (int k=0; k<octaves; k++)
                 {
 
-                    float sampleX = 1.0f * i / scale * frequency;
-                    float sampleY = 1.0f * j / scale * frequency;
+                    float sampleX = 1.0f * (i + offsetX) / scale * frequency;
+                    float sampleY = 1.0f * (j + offsetY) / scale * frequency;
 
-                    float value = Mathf.PerlinNoise(sampleX + offsetX, sampleY + offsetY);
+                    float value = Mathf.PerlinNoise(sampleX, sampleY);
                     noiseHeight += value * amplitude;
 
                     frequency *= lacunarity;

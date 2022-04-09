@@ -5,10 +5,17 @@ using UnityEngine;
 public class Chunk
 {
     public Block[,,] blocks;
-    int[,] heightMap;
-
+    public GameObject plane;
+    
     public Chunk(Block[,,] _blocks)
     {
         blocks = _blocks;
+    }
+
+    public void Reload()
+    {
+        //Debug.Log("OK");
+        MapDisplay mapDisplay = plane.GetComponent<MapDisplay>();
+        mapDisplay.DrawMeshFromBlocks(this);
     }
 }

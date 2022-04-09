@@ -6,6 +6,8 @@ public class PlayerMover : MonoBehaviour
 {
     public CharacterController controller;
 
+    public bool fly = false;
+
     private Vector3 playerVelocity;
     public float playerSpeed = 6.0f;
     public float jumpHeight = 0.7f;
@@ -39,7 +41,7 @@ public class PlayerMover : MonoBehaviour
         //Debug.Log(groundedPlayer + " " + cappedNorth + " " + cappedSouth + " " + cappedEast + " " + cappedWest);
         //Debug.Log(jumpHeight);
 
-        if (/*groundedPlayer && */Input.GetButtonDown("Jump"))
+        if ((fly || groundedPlayer) && Input.GetButtonDown("Jump"))
         {
             playerVelocity.y += Mathf.Sqrt(jumpHeight * -3.0f * gravityValue);
         }
