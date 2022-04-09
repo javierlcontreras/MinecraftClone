@@ -15,6 +15,7 @@ public class ChunkLoader : MonoBehaviour
     [Range(0, 255)]
     public int factor = 10;
 
+    public Material mapMaterial;
     public Transform playerPosition;
     public int loadingRadius = 3;
 
@@ -64,6 +65,9 @@ public class ChunkLoader : MonoBehaviour
                         GameObject plane = GameObject.CreatePrimitive(PrimitiveType.Plane);
                         plane.name = "Chunk " + i + " " + j;
 
+                        MeshRenderer planeMeshRenderer = plane.GetComponent<MeshRenderer>();
+                        planeMeshRenderer.material = mapMaterial;
+
                         MapDisplay mapDisplay = plane.AddComponent(typeof(MapDisplay)) as MapDisplay;
 
                         mapDisplay.Init();
@@ -87,32 +91,10 @@ public class ChunkLoader : MonoBehaviour
         oldy = y;
     }
     List<GameObject> testingPlanes;
-    public void ZeroChunk()
-    {
-        testingPlanes = new List<GameObject>();
-        for (int i=-loadingRadius; i<=loadingRadius; i++)
-        {
-            for (int j = -loadingRadius; j <= loadingRadius; j++)
-            {
-                Chunk chunk = newChunk(0, 0);
-
-                GameObject plane = GameObject.CreatePrimitive(PrimitiveType.Plane);
-                testingPlanes.Add(plane);
-                plane.AddComponent(typeof(MapDisplay));
-                
-                MapDisplay mapDisplay = plane.GetComponent<MapDisplay>();
-
-                mapDisplay.Init();
-                mapDisplay.AddTextureAtlas();
-                mapDisplay.DrawMeshFromBlocks(chunk);
-            }
-        }
-    }
 
     public void Reload()
     {
         start = true;
-        Debug.Log("JAVI");
         foreach (Chunk chunk in chunks.Values)
         {
             GameObject.DestroyImmediate(chunk.plane);

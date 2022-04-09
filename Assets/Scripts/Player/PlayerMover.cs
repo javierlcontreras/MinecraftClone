@@ -27,15 +27,15 @@ public class PlayerMover : MonoBehaviour
         float mouseX = Input.GetAxis("Mouse X") * sensibility;
         yRotation += mouseX;
 
-        Vector3 orig = controller.transform.position - new Vector3(0, 0.45f, 0);
+        Vector3 orig = controller.transform.position - new Vector3(0, 0.35f, 0);
         Vector3 north = new Vector3(0,0,1);
         Vector3 east = new Vector3(1,0,0);
 
-        bool groundedPlayer = Physics.Raycast(orig, Vector3.down, 0.35f);
-        bool cappedNorth = Physics.Raycast(orig, north, 0.35f);
-        bool cappedSouth = Physics.Raycast(orig, -north, 0.35f);
-        bool cappedEast = Physics.Raycast(orig, east, 0.35f);
-        bool cappedWest = Physics.Raycast(orig, -east, 0.35f);
+        bool groundedPlayer = Physics.Raycast(orig, Vector3.down, 0.45f);
+        bool cappedNorth = Physics.Raycast(orig, north, 0.45f);
+        bool cappedSouth = Physics.Raycast(orig, -north, 0.45f);
+        bool cappedEast = Physics.Raycast(orig, east, 0.45f);
+        bool cappedWest = Physics.Raycast(orig, -east, 0.45f);
 
         //Debug.Log(orig + " " + north + " " + east);
         //Debug.Log(groundedPlayer + " " + cappedNorth + " " + cappedSouth + " " + cappedEast + " " + cappedWest);

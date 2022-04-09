@@ -16,7 +16,7 @@ public class MapGeneratorEditor : Editor
 
         if (GUILayout.Button("Generate"))
         {
-            mapGen.ZeroChunk();
+           // mapGen.ZeroChunk();
         }
         if (GUILayout.Button("Cleanup"))
         {

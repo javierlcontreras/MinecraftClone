@@ -20,6 +20,22 @@ public class MapDisplay : MonoBehaviour
         texturePath = "Assets/Materials/TextureAtlas.png";
     }
 
+
+    private Vector2[] TextureCoordsFromID(int textureIDx, int textureIDy, int atlasWidth, int atlasHeight)
+    {
+        float dx = 1f / atlasWidth;
+        float dy = 1f / atlasHeight;
+
+        float x = 1f * textureIDx / atlasWidth;
+        float y = 1f * textureIDy / atlasHeight;
+        return new Vector2[4] {
+                    new Vector2(x, y-dy),
+                    new Vector2(x+dx, y-dy),
+                    new Vector2(x+dx, y),
+                    new Vector2(x, y)
+                };
+    }
+
     public void AddTextureAtlas()
     {
         Texture2D texture = null;
@@ -33,25 +49,13 @@ public class MapDisplay : MonoBehaviour
             texture.LoadImage(fileData);
             texture.Apply();
         }
+        
         textureCoord = new Dictionary<string, Vector2[]>();
-        textureCoord.Add("grasstop", new Vector2[4] {
-                    new Vector2(0, 0.5f),
-                    new Vector2(0.5f, 0.5f),
-                    new Vector2(0.5f, 1f),
-                    new Vector2(0, 1f)
-                });
-        textureCoord.Add("grassside", new Vector2[4] {
-                    new Vector2(0.5f, 0.5f),
-                    new Vector2(1, 0.5f),
-                    new Vector2(1, 1),
-                    new Vector2(0.5f, 1)
-                });
-        textureCoord.Add("dirt", new Vector2[4] {
-                    new Vector2(0, 0),
-                    new Vector2(0.5f, 0),
-                    new Vector2(0.5f, 0.5f),
-                    new Vector2(0, 0.5f)
-                });
+        textureCoord.Add("grasstop", TextureCoordsFromID(0, 0, 2, 2));
+        textureCoord.Add("grassside", TextureCoordsFromID(1, 0, 2, 2));
+        textureCoord.Add("dirt", TextureCoordsFromID(0, 1, 2, 2));
+        textureCoord.Add("stone", TextureCoordsFromID(1, 1, 2, 2));
+
         meshRenderer.sharedMaterial.mainTexture = texture;
     }
 
@@ -125,7 +129,10 @@ public class MapDisplay : MonoBehaviour
                         Vector2[] textureTop = textureCoord["grasstop"];
                         Vector2[] textureBot = textureCoord["dirt"];
                         Vector2[] textureSide = textureCoord["grassside"];
-                        if (blockType == BlockType.Stone) textureSide = textureCoord["dirt"];
+                        if (blockType == BlockType.Stone)
+                        {
+                            textureBot = textureTop = textureSide = textureCoord["stone"];
+                        }
 
                         if (neighbourType == BlockType.Air)
                         {
